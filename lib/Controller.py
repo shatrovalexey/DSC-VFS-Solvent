@@ -380,7 +380,7 @@ class Controller( DriverClass ) :
 
 		for table in ( 'acc_driver' , 'acc_item' ) :
 			dba.execute( self.config[ "db" ][ "sql" ][ "copy" ] % ( table , table ) )
-			dba.execute( self.config[ "db" ][ "sql" ][ "update" ] % ( table ) )
+			# dba.execute( self.config[ "db" ][ "sql" ][ "update" ] % ( table ) )
 
 		dba.execute( self.config[ "db" ][ "sql" ][ "detach" ] )
 		dba.finish( )
