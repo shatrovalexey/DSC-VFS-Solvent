@@ -1,11 +1,11 @@
 from lib.DriverClass import DriverClass
+from lib.SQLite import SQLite
 import os , io , random
 import hashlib
 import sqlite3
 import gzip
 import tempfile
 from os import walk
-from lib.SQLite import SQLite
 
 class Controller( DriverClass ) :
 	def configure( self ) :
