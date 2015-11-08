@@ -395,5 +395,6 @@ class Controller( DriverClass ) :
 
 		self.creator.prepareSQLite3( )
 		self.store( backupfile )
+		os.remove( backupfile )
 
 		return True
