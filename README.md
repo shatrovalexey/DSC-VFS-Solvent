@@ -1,40 +1,49 @@
-# dsc
-Data storage client
+# Клиент для децентрализованного хранения данных v1.1
 
-## Appointment
-The program is designed for a secure storage in public networks and services.
-Currently it supports FTP and IMAP v4 protocol only.
+## Назначение
+Децентрализованное хранение данных в публичных сетях и службах. Сейчас есть поддержка протоколов FTP и IMAP.
 
-## How it works
-The program splits your file into parts, each part separately encrypts the password with its random algorithm AES-256, and sends it to the network.
+## Как это работает
+1. Делит ваш файл на части
+2. Шифрует каждую часть AES-256 с произвольным генерируемым паролем
+3. Сохраняет каждую часть в произвольном аккаунте
 
-## Requirements
+## Лицензия
+GNU GENERAL PUBLIC LICENSE
+
+## Системные требования
 1. Python version >= 3.4x : https://www.python.org/downloads/
 2. win32con: http://sourceforge.net/projects/pywin32/files/pywin32/Build%20219/
 3. pycrypto: https://pypi.python.org/pypi/pycrypto
 
-## Configuring
-Setup your account settings in config/account.gz
-It supports DriverFTP and DriverIMAP4 drivers only.
-Setup your paths in install.reg file and run it.
+## Загрузка
+https://github.com/shatrovalexey/dsc.git
 
-## Usage
-On Windows' Explorer program you'll have new menu items that are usable to manage your files between different accounts from config/account.gz.
+## Настройка
+Укажите настройки для доступа к вашим аккаунтам в config/account.gz Сейчас поддерживаются дравера только DriverFTP и DriverIMAP4.
+Исправьте пути в install.reg и запустите его.
 
-When you ran \_\_init\_\_.py you'll get GUI to manage your remotely stored files and accounts.
+## Запуск
+В проводнике Windows появятся новые пункты меню для управления файлами, которые вы загрузили в аккаунты, указанные в config/account.gz.
+Программа __init__.py позволяет использовать графический интерфейс для управления файлами и аккаунтами.
 
-## TODO
-    From JSON to SQLite data manager migration
-    Compress and protect DB
-    Remove any OS dependance
-    Use cx_freeze to pack it into executable
-    Secure data packets distribution with duplicates between many accounts
-    Disk driver for Linux systems
-    More data storage manage settings like stored files testing and accounts' service speed testing
-    More services, more drivers
-    Mobile devices implementation
+## Планы разработки
+* --Уйти от JSON к SQLite--
+* Упаковать и защитить паролем БД
+* Удалить любые зависимости от ОС
+* Собрать исполняемый файл с помощью cx_freeze
+* Распределять дубликаты частей файлов между аккаунтами для более надёжного хранения
+* Разработка драйвера для подключения директории в Linux
+* Больше настроек для управления данных, как тестирование хранимых файлов и скоростей работы служб, оптимизация хранения
+* Больше драйверов для большего количества служб
+* Поддержка мобильных устройств
 
-## Author
-Shatrov Alexej Sergeevich, http://ashatrov.ru, mail[at]ashatrov.ru.
+## Что нового в v1.1?
+* Хранение ссылок на данных в JSON заменено на SQLite3
+* Исправлены баги в GUI
 
-Your donations are welcome BTC: 3N5sCXgx2rs2bkAQNgoJQtdhsgm3KGDzhG
+## Автор
+
+Шатров Алексей Сергеевич, mail[аt]ashatrov.ru.
+
+Понравился проект? BTC: 3N5sCXgx2rs2bkAQNgoJQtdhsgm3KGDzhG

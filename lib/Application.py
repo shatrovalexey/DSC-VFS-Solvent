@@ -31,8 +31,8 @@ class Application( Interface ) :
 		return self
 
 	def __prepareConfig( self ) :
-		for key in ( "check" , "filesystem" , "account" , "libPath" , "driverPath" ) :
-			self.config[ key ] = self.__preparePath( self.config[ key ] )
+		self.config[ "libPath" ] = self.__preparePath( self.config[ "libPath" ] )
+		self.config[ "driverPath" ] = self.__preparePath( self.config[ "driverPath" ] )
 
 		for key in self.config[ "gui" ][ "icon" ] :
 			self.config[ "gui" ][ "icon" ][ key ] = self.__preparePath( self.config[ "gui" ][ "icon" ][ key ] )
