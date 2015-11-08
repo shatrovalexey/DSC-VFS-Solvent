@@ -353,26 +353,20 @@ class Controller( DriverClass ) :
 		dirname = os.path.dirname( self.config[ "db" ][ "path" ] )
 		filename = os.path.basename( self.config[ "db" ][ "path" ] )
 		archname = self.password( )
-		cwd = os.getcwd( )
 
 		self.creator.conn.finish( )
 
 		password_bytes = str.encode( password )
 		backupfile = tempfile.mktemp( )
 
-		os.chdir( dirname )
-
-
 		out = gzip.open( backupfile , mode = "wb" )
-		inp = io.open( filename , "rb" )
+		inp = io.open( self.config[ "db" ][ "path" ] , "rb" )
 
 		for block in self.reader( inp ) :
 			out.write( block )
 
 		inp.close( )
 		out.close( )
-
-		os.chdir( cwd )
 
 		tempdatabase = tempfile.mktemp( )
 
@@ -386,6 +380,7 @@ class Controller( DriverClass ) :
 
 		for table in ( 'acc_driver' , 'acc_item' ) :
 			dba.execute( self.config[ "db" ][ "sql" ][ "copy" ] % ( table , table ) )
+			dba.execute( self.config[ "db" ][ "sql" ][ "update" ] % ( table ) )
 
 		dba.execute( self.config[ "db" ][ "sql" ][ "detach" ] )
 		dba.finish( )
