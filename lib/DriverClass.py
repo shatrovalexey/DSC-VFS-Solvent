@@ -26,7 +26,7 @@ class DriverClass( Interface ) :
 
 		return result
 
-	def __password( self ):
+	def password( self ):
 		rand = self.__rand( )
 		result = self.__hash( rand )
 
@@ -34,7 +34,7 @@ class DriverClass( Interface ) :
 
 	def encrypt( self , message ):
 		IV = self.__rand( self.blockSize )
-		password = self.__password( )
+		password = self.password( )
 		aes = AES.new( password , AES.MODE_CFB , IV )
 		result = IV + aes.encrypt( message )
 

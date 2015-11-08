@@ -2,14 +2,14 @@ from lib.DriverClass import DriverClass
 import os , io , random
 import hashlib
 import sqlite3
+import gzip
+import tempfile
 from os import walk
+from lib.SQLite import SQLite
 
 class Controller( DriverClass ) :
 	def configure( self ) :
 		self.connection = { }
-		# self.account.fetch( )
-		# self.filesystem.fetch( )
-		# self.check.fetch( )
 
 		return self
 
@@ -343,5 +343,57 @@ class Controller( DriverClass ) :
 			raise exception
 
 		self.event( "after" , onAction = lambda fn : fn( result ) , ** kwargs )
+
+		return True
+
+	def backup( self , password = None , * args , ** kwargs ) :
+		if self.creator.visible :
+			return None
+
+		dirname = os.path.dirname( self.config[ "db" ][ "path" ] )
+		filename = os.path.basename( self.config[ "db" ][ "path" ] )
+		archname = self.password( )
+		cwd = os.getcwd( )
+
+		self.creator.conn.finish( )
+
+		password_bytes = str.encode( password )
+		backupfile = tempfile.mktemp( )
+
+		os.chdir( dirname )
+
+
+		out = gzip.open( backupfile , mode = "wb" )
+		inp = io.open( filename , "rb" )
+
+		for block in self.reader( inp ) :
+			out.write( block )
+
+		inp.close( )
+		out.close( )
+
+		os.chdir( cwd )
+
+		tempdatabase = tempfile.mktemp( )
+
+		dba = SQLite( self.creator )
+		dba.prepare( database = tempdatabase , fetch = False )
+		dba.execute( self.config[ "db" ][ "sql" ][ "attach" ] , self.config[ "db" ][ "path" ] )
+
+		for table in ( 'acc_driver' , 'acc_item' , 'fs_item' , 'fs_node' ) :
+			sql = dba.fetchone( self.config[ "db" ][ "sql" ][ "table" ] , 'table' , table )
+			dba.execute( sql )
+
+		for table in ( 'acc_driver' , 'acc_item' ) :
+			dba.execute( self.config[ "db" ][ "sql" ][ "copy" ] % ( table , table ) )
+
+		dba.execute( self.config[ "db" ][ "sql" ][ "detach" ] )
+		dba.finish( )
+
+		os.remove( self.config[ "db" ][ "path" ] )
+		os.rename( tempdatabase , self.config[ "db" ][ "path" ] )
+
+		self.creator.prepareSQLite3( )
+		self.store( backupfile )
 
 		return True

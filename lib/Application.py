@@ -11,19 +11,23 @@ class Application( Interface ) :
 		self.configFile = configFile
 		self.config = Config( self.configFile )
 		self.config.fetch( )
-		self.__prepareConfig( )
 
 		self.visible = visible
 
+		self.__prepareConfig( )
 		self.prepareSQLite3( )
 
 		self.controller = Controller( self )
 		self.controller.configure( )
 
-	def prepareSQLite3( self ) :
-		self.conn = SQLite( creator = self , filename = self.config[ "db" ][ "query" ] )
-		self.conn.prepare( self.config[ "db" ][ "path" ] )
+	def getDBA( self , path , query = None ) :
+		conn = SQLite( creator = self , filename = query )
+		conn.prepare( path )
 
+		return conn
+
+	def prepareSQLite3( self ) :
+		self.conn = self.getDBA( self.config[ "db" ][ "path" ] , self.config[ "db" ][ "query" ] )
 		for entity in self.conn.config :
 			consumer = SQLiteConsumer( entity = entity , creator = self.conn )
 			setattr( self , entity , consumer )

@@ -2,7 +2,7 @@ from lib.Config import Config
 import sqlite3
 
 class SQLite( Config ) :
-	def __init__( self , creator, filename , charset = 'utf-8' ) :
+	def __init__( self , creator, filename = None , charset = 'utf-8' ) :
 		self.creator = creator
 		self.fileName = filename
 		self.charset = charset
@@ -24,18 +24,24 @@ class SQLite( Config ) :
 
 		return result
 
-	def prepare( self , database ) :
+	def prepare( self , database , fetch = True ) :
 		self.conn = sqlite3.connect( database , detect_types = sqlite3.PARSE_COLNAMES )
 		self.dbh = self.conn.cursor( )
-		self.fetch( )
-		self.execute( self.creator.config[ "db" ][ "prepare" ] )
+		if fetch is True :
+			self.fetch( )
+		self.execute( self.creator.config[ "db" ][ "sql" ][ "prepare" ] )
 
 		return self
+
+	def executescript( self , script , * args ) :
+		result = self.dbh.executescript( script )
+
+		return result
 
 	def execute( self , sql , * args ) :
-		self.dbh.execute( sql , args )
+		result = self.dbh.execute( sql , args )
 
-		return self
+		return result
 
 	def fetchcol( self , sql , * args ) :
 		self.execute( sql , * args )
@@ -89,6 +95,14 @@ class SQLite( Config ) :
 		result = self.conn.commit( )
 
 		return result
+
+	def finish( self ) :
+		try :
+			self.conn.commit( )
+			self.conn.close( )
+		except :
+			return False
+		return True
 
 	def rollback( self ) :
 		result = self.conn.rollback( )
