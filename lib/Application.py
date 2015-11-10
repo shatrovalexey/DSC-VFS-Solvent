@@ -35,20 +35,27 @@ class Application( Interface ) :
 		return self
 
 	def __prepareConfig( self ) :
-		self.config[ "libPath" ] = self.__preparePath( self.config[ "libPath" ] )
-		self.config[ "driverPath" ] = self.__preparePath( self.config[ "driverPath" ] )
+		self.config[ "libPath" ] = self.preparePath( self.config[ "libPath" ] )
+		self.config[ "driverPath" ] = self.preparePath( self.config[ "driverPath" ] )
 
 		for key in self.config[ "gui" ][ "icon" ] :
-			self.config[ "gui" ][ "icon" ][ key ] = self.__preparePath( self.config[ "gui" ][ "icon" ][ key ] )
+			self.config[ "gui" ][ "icon" ][ key ] = self.preparePath( self.config[ "gui" ][ "icon" ][ key ] )
 
-		self.config[ "gui" ][ "widgetPath" ] = self.__preparePath( self.config[ "gui" ][ "widgetPath" ] )
-		self.config[ "db" ][ "query" ] = self.__preparePath( self.config[ "db" ][ "query" ] )
-		self.config[ "db" ][ "path" ] = self.__preparePath( self.config[ "db" ][ "path" ] )
+		self.config[ "gui" ][ "widgetPath" ] = self.preparePath( self.config[ "gui" ][ "widgetPath" ] )
+		self.config[ "db" ][ "query" ] = self.preparePath( self.config[ "db" ][ "query" ] )
+		self.config[ "db" ][ "path" ] = self.preparePath( self.config[ "db" ][ "path" ] )
 
 		return self
 
-	def __preparePath( self , path ) :
-		result = os.path.abspath( os.path.join( os.path.dirname( __file__ ) , '..' , path ) )
+	def preparePath( self , path , add = '..' ) :
+		args = [ ]
+		args.append( os.path.dirname( __file__ ) )
+
+		if add is not None :
+			args.append( add )
+
+		args.append( path )
+		result = os.path.abspath( os.path.join( * args ) )
 
 		return result
 

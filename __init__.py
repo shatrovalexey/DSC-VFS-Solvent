@@ -13,7 +13,7 @@ try :
 except :
 	configFile = "config/config.gz"
 
-configFile = os.path.abspath( os.path.join( os.path.dirname( __file__ ) , configFile ) )
+configFile = Application.preparePath( None , configFile )
 
 try :
 	if "action" not in args:
@@ -24,12 +24,12 @@ try :
 	else :
 		args[ "path" ] = os.path.abspath( args[ "path" ] )
 
-	argv = [ ]
+	argv = []
 	argv.append( args[ "action" ] )
 	argv.append( args[ "path" ] )
 
-	if "password" in args :
-		argv.append( args[ "password" ] )
+	if "id" in args :
+		argv.append( args[ "id" ] )
 
 	app = Application( configFile = configFile , visible = False )
 	app.prepare( )

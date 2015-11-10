@@ -4,7 +4,7 @@ import os , io , random
 import hashlib
 import sqlite3
 import gzip
-import tempfile
+import datetime
 from os import walk
 
 class Controller( DriverClass ) :
@@ -301,7 +301,7 @@ class Controller( DriverClass ) :
 
 		self.event( 'after' , onAction = lambda fn : fn( result ) , ** kwargs )
 
-		return self
+		return fs_item_id
 
 	def fetch( self , file_id , file_local , ** kwargs ) :
 		self.event( 'before' , onAction = lambda fn : fn( file_id , file_local ) , ** kwargs )
@@ -346,18 +346,48 @@ class Controller( DriverClass ) :
 
 		return True
 
-	def backup( self , password = None , * args , ** kwargs ) :
+	def unbackup( self , path , fs_item_id , * args , ** kwargs ) :
 		if self.creator.visible :
 			return None
 
-		dirname = os.path.dirname( self.config[ "db" ][ "path" ] )
-		filename = os.path.basename( self.config[ "db" ][ "path" ] )
-		archname = self.password( )
+		fs_item = self.creator.fs_item[ fs_item_id ]
+
+		if fs_item is None :
+			self.exception( "file_not_found" )
+
+		dirname = os.path.dirname( self.config[ "db" ][ "backup_path" ] )
+		filename = os.path.basename( fs_item[ "name" ] )
+
+		localfile = os.path.join( dirname , filename )
+		localfile = self.creator.preparePath( localfile )
+		result = self.fetch( fs_item_id , localfile )
+
+		if not result :
+			self.exception( "file_not_found" )
 
 		self.creator.conn.finish( )
+		backupfile = self.__backup( )
 
-		password_bytes = str.encode( password )
-		backupfile = tempfile.mktemp( )
+		inp = gzip.open( localfile , mode = "rb" )
+		out = io.open( self.config[ "db" ][ "path" ] , "wb" )
+
+		for block in self.reader( inp ) :
+			out.write( block )
+
+		out.close( )
+		inp.close( )
+
+		os.remove( localfile )
+		self.creator.prepareSQLite3( )
+
+		print( backupfile )
+
+		return self
+
+	def __backup( self , * args , ** kwargs ) :
+		backuppath = self.config[ "db" ][ "backup_path" ]
+		backupfile = datetime.datetime.now( ).strftime( backuppath )
+		backupfile = self.creator.preparePath( backupfile )
 
 		out = gzip.open( backupfile , mode = "wb" )
 		inp = io.open( self.config[ "db" ][ "path" ] , "rb" )
@@ -368,28 +398,21 @@ class Controller( DriverClass ) :
 		inp.close( )
 		out.close( )
 
-		tempdatabase = tempfile.mktemp( )
+		return backupfile
 
-		dba = SQLite( self.creator )
-		dba.prepare( database = tempdatabase , fetch = False )
-		dba.execute( self.config[ "db" ][ "sql" ][ "attach" ] , self.config[ "db" ][ "path" ] )
+	def backup( self , * args , ** kwargs ) :
+		if self.creator.visible :
+			return None
 
-		for table in ( 'acc_driver' , 'acc_item' , 'fs_item' , 'fs_node' ) :
-			sql = dba.fetchone( self.config[ "db" ][ "sql" ][ "table" ] , 'table' , table )
-			dba.execute( sql )
+		self.event( "before" , onAction = lambda fn : fn( file_id , file_local ) , ** kwargs )
 
-		for table in ( 'acc_driver' , 'acc_item' ) :
-			dba.execute( self.config[ "db" ][ "sql" ][ "copy" ] % ( table , table ) )
-			# dba.execute( self.config[ "db" ][ "sql" ][ "update" ] % ( table ) )
-
-		dba.execute( self.config[ "db" ][ "sql" ][ "detach" ] )
-		dba.finish( )
-
-		os.remove( self.config[ "db" ][ "path" ] )
-		os.rename( tempdatabase , self.config[ "db" ][ "path" ] )
-
+		self.creator.conn.finish( )
+		backupfile = self.__backup( )
 		self.creator.prepareSQLite3( )
-		self.store( backupfile )
-		os.remove( backupfile )
+		result = self.store( backupfile )
 
-		return True
+		print( result )
+
+		self.event( "after" , onAction = lambda fn : fn( file_id , file_local ) , ** kwargs )
+
+		return self

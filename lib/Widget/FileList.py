@@ -14,13 +14,27 @@ class FileList( GUI ) :
 
 		fileBox = ttk.Frame( self.master , relief = tk.SUNKEN )
 		fileEntry = ttk.Entry( fileBox , textvariable = self.inputValue )
+
+		"""
+		backupButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "backup" ] , command = self.backup )
+		unbackupButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "unbackup" ] , command = self.unbackup )
+		"""
+
 		purgeButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "del" ] , command = self.purge )
 		storeButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "upload" ] , command = self.store )
 		fileButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "select" ] , command = self.onChooseFile )
 
+		"""
+		ttk.Separator( fileBox , orient = tk.HORIZONTAL ).pack( side = tk.RIGHT )
+
+		unbackupButton.pack( side = tk.RIGHT )
+		backupButton.pack( side = tk.RIGHT )
+		"""
+
 		purgeButton.pack( side = tk.RIGHT )
 		storeButton.pack( side = tk.RIGHT )
 		fileButton.pack( side = tk.RIGHT )
+
 		fileEntry.pack( side = tk.LEFT , fill = tk.X , expand = tk.YES )
 		fileBox.pack( side = tk.TOP , fill = tk.X )
 
@@ -176,6 +190,25 @@ class FileList( GUI ) :
 		result = self.creator.creator.action( action , * args , ** self.event )
 
 		return result
+
+
+	"""
+	def backup( self ) :
+		subName = self.subName( )
+		result = self.action( subName )
+
+		return result
+
+	def unbackup( self ) :
+		subName = self.subName( )
+		filename = self.fileRemote( )
+
+		result = self.action( subName , filename )
+
+		return result
+
+	"""
+
 
 	def purge( self ) :
 		subName = self.subName( )
