@@ -358,6 +358,11 @@ class Controller( DriverClass ) :
 		dirname = os.path.dirname( self.config[ "db" ][ "backup_path" ] )
 		filename = os.path.basename( fs_item[ "name" ] )
 
+		try :
+			os.mkdir( dirname )
+		except :
+			pass
+
 		localfile = os.path.join( dirname , filename )
 		localfile = self.creator.preparePath( localfile )
 		result = self.fetch( fs_item_id , localfile )
