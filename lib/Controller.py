@@ -389,6 +389,11 @@ class Controller( DriverClass ) :
 		backupfile = datetime.datetime.now( ).strftime( backuppath )
 		backupfile = self.creator.preparePath( backupfile )
 
+		try :
+			os.mkdir( backuppath )
+		except :
+			pass
+
 		out = gzip.open( backupfile , mode = "wb" )
 		inp = io.open( self.config[ "db" ][ "path" ] , "rb" )
 
