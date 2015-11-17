@@ -30,7 +30,6 @@ class AccountList( GUI ) :
 				pass
 
 		self.accountList.column( "#0" , width = 0 )
-
 		self.accountList.pack( fill = tk.BOTH , expand = tk.YES )
 
 		accountEditorBox = ttk.LabelFrame( self.master , text = self.config[ "gui" ][ "accountEditor" ] )

@@ -1,4 +1,4 @@
-from lib.GUI import *
+from lib.GUI import GUI
 from win32gui import *
 from lib.Interface import Interface
 import win32con

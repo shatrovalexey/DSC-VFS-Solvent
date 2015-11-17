@@ -2,7 +2,6 @@ from lib.DriverClass import DriverClass
 import imaplib
 import binascii
 import email.parser
-import sys
 from tkinter.messagebox import *
 
 class DriverIMAP4( DriverClass ) :

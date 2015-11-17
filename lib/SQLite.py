@@ -26,12 +26,26 @@ class SQLite( Config ) :
 
 	def prepare( self , database , fetch = True ) :
 		self.conn = sqlite3.connect( database , detect_types = sqlite3.PARSE_COLNAMES )
+
+		encryptor = self.creator.controller.encryptor( )
+		decryptor = self.creator.controller.decryptor( )
+		recryptor = self.creator.controller.recryptor( )
+
+		self.conn.create_function( "encrypt" , 1 , encryptor )
+		self.conn.create_function( "decrypt" , 1 , decryptor )
+		self.conn.create_function( "recrypt" , 2 , recryptor )
+
 		self.dbh = self.conn.cursor( )
 		if fetch is True :
 			self.fetch( )
 		self.execute( self.creator.config[ "db" ][ "sql" ][ "prepare" ] )
 
 		return self
+
+	def executemany( self , sql , * args ) :
+		result = self.dbh.executemany( sql , args )
+
+		return result
 
 	def executescript( self , script , * args ) :
 		result = self.dbh.executescript( script )

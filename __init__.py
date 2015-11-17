@@ -24,19 +24,22 @@ try :
 	else :
 		args[ "path" ] = os.path.abspath( args[ "path" ] )
 
-	argv = []
+	argv = [ ]
 	argv.append( args[ "action" ] )
 	argv.append( args[ "path" ] )
 
 	if "id" in args :
 		argv.append( args[ "id" ] )
 
+	if "password" in args :
+		argv.append( args[ "password" ] )
+
 	app = Application( configFile = configFile , visible = False )
 	app.prepare( )
 	app.ui.action( * argv )
 	app.finish( )
-
 except Exception as exception:
+	# print( exception )
 	app = Application( configFile = configFile )
 	app.prepare( )
 	app.execute( )

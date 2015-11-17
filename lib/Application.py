@@ -4,6 +4,7 @@ from lib.SQLite import SQLite
 from lib.SQLiteConsumer import SQLiteConsumer
 from lib.Controller import Controller
 from lib.UI import UI
+from lib.Password import Password
 import os
 
 class Application( Interface ) :
@@ -13,9 +14,9 @@ class Application( Interface ) :
 		self.config.fetch( )
 
 		self.visible = visible
+		self.password = None
 
 		self.__prepareConfig( )
-		self.prepareSQLite3( )
 
 		self.controller = Controller( self )
 		self.controller.configure( )
@@ -28,6 +29,7 @@ class Application( Interface ) :
 
 	def prepareSQLite3( self ) :
 		self.conn = self.getDBA( self.config[ "db" ][ "path" ] , self.config[ "db" ][ "query" ] )
+
 		for entity in self.conn.config :
 			consumer = SQLiteConsumer( entity = entity , creator = self.conn )
 			setattr( self , entity , consumer )
@@ -41,15 +43,15 @@ class Application( Interface ) :
 		for key in self.config[ "gui" ][ "icon" ] :
 			self.config[ "gui" ][ "icon" ][ key ] = self.preparePath( self.config[ "gui" ][ "icon" ][ key ] )
 
+		for key in ( "query" , "path" , "recrypt" ) :
+			self.config[ "db" ][ key ] = self.preparePath( self.config[ "db" ][ key ] )
+
 		self.config[ "gui" ][ "widgetPath" ] = self.preparePath( self.config[ "gui" ][ "widgetPath" ] )
-		self.config[ "db" ][ "query" ] = self.preparePath( self.config[ "db" ][ "query" ] )
-		self.config[ "db" ][ "path" ] = self.preparePath( self.config[ "db" ][ "path" ] )
 
 		return self
 
 	def preparePath( self , path , add = '..' ) :
-		args = [ ]
-		args.append( os.path.dirname( __file__ ) )
+		args = [ os.path.dirname( __file__ ) ]
 
 		if add is not None :
 			args.append( add )
@@ -61,6 +63,12 @@ class Application( Interface ) :
 
 	def prepare( self ) :
 		self.ui = UI( None , config = self.config , creator = self , visible = self.visible )
+
+		self.password = Password( self.ui )
+		self.password.prepare( )
+		self.password.login( )
+
+		self.prepareSQLite3( )
 		self.ui.prepare( )
 
 		return self
@@ -93,12 +101,12 @@ class Application( Interface ) :
 	def run( self , target , finish ) :
 		if not self.visible :
 			target( )
+
 			return finish( )
 
-		if not self.thread(
-			target = target ,
-			finish = lambda: self.ui.update( ) and finish( )
-		) :
+		onFinish = lambda: self.ui.update( ) and finish( )
+
+		if not self.thread( target = target , finish = onFinish ) :
 			self.exception( "unknown" )
 
 		return False

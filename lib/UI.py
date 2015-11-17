@@ -27,7 +27,8 @@ class UI( GUI ) :
 		return self
 
 	def message( self , ** kwargs ) :
-		result = None
+		for key in kwargs :
+			print( key , kwargs[ key ] )
 
 		try :
 			self.messenger.destroy( True )
@@ -35,19 +36,13 @@ class UI( GUI ) :
 
 			return result
 		except Exception as exception :
-			# isinstance(s, str)
-			print( exception )
-
-		return result
+			return None
 
 	def update( self ) :
 		for control in self.control :
 			control.update( )
 
 		return self
-
-
-
 
 	def onProgress( self , processed , total ) :
 		percent = processed / total * 100.0

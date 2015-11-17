@@ -1,6 +1,8 @@
-from lib.GUI import *
+from lib.GUI import GUI, ttk
+from lib.Widget.ChangePasswordDialog import ChangePasswordDialog
 import tkinter.filedialog
 from tkinter.messagebox import *
+import tkinter as tk
 import sys
 
 class FileList( GUI ) :
@@ -15,22 +17,12 @@ class FileList( GUI ) :
 		fileBox = ttk.Frame( self.master , relief = tk.SUNKEN )
 		fileEntry = ttk.Entry( fileBox , textvariable = self.inputValue )
 
-		"""
-		backupButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "backup" ] , command = self.backup )
-		unbackupButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "unbackup" ] , command = self.unbackup )
-		"""
-
+		# chpassButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "change_password" ] , command = self.changePassword )
 		purgeButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "del" ] , command = self.purge )
 		storeButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "upload" ] , command = self.store )
 		fileButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "select" ] , command = self.onChooseFile )
 
-		"""
-		ttk.Separator( fileBox , orient = tk.HORIZONTAL ).pack( side = tk.RIGHT )
-
-		unbackupButton.pack( side = tk.RIGHT )
-		backupButton.pack( side = tk.RIGHT )
-		"""
-
+		# chpassButton.pack( side = tk.RIGHT )
 		purgeButton.pack( side = tk.RIGHT )
 		storeButton.pack( side = tk.RIGHT )
 		fileButton.pack( side = tk.RIGHT )
@@ -68,19 +60,24 @@ class FileList( GUI ) :
 		filePath.pack( side = tk.LEFT , fill = tk.BOTH , expand = tk.YES )
 		fileUpload.pack( side = tk.RIGHT )
 
+		heading_keys = list( self.config[ "gui" ][ "filelist" ][ "heading" ].keys( ) )
+		heading_keys.sort( )
+
 		fileBox = ttk.Frame( self.master )
 		self.fileList = ttk.Treeview(
 			fileBox ,
-			columns			= [ key for key in self.config[ "gui" ][ "filelist" ][ "heading" ] ] ,
+			columns			= heading_keys ,
 			selectmode		= tk.BROWSE ,
 			displaycolumns	= "#all" ,
 			show			= "headings" ,
 		)
 		self.fileListScrollbar = ttk.Scrollbar( fileBox )
 
-		for key in self.config[ "gui" ][ "filelist" ][ "heading" ].keys( ) :
-			self.fileList.column( key , width = self.config[ "gui" ][ "column_width" ] )
-			self.fileList.heading( key , text = self.config[ "gui" ][ "filelist" ][ "heading" ][ key ] )
+		for key in heading_keys :
+			item = self.config[ "gui" ][ "filelist" ][ "heading" ][ key ]
+			if "width" in item :
+				self.fileList.column( key , width = item[ "width" ] )
+			self.fileList.heading( key , text = item[ "label" ] )
 
 		self.fileList.config( yscrollcommand = self.fileListScrollbar.set )
 		self.fileListScrollbar.config( command = self.fileList.yview )
@@ -146,6 +143,12 @@ class FileList( GUI ) :
 
 		return True
 
+	def changePassword( self ) :
+		dialog = ChangePasswordDialog( self.master , self.config , self )
+		dialog.prepare( )
+
+		return self
+
 	def onChooseFile( self ) :
 		title = self.config[ "title" ]
 		path = tk.filedialog.askopenfilename( title = title )
@@ -155,18 +158,18 @@ class FileList( GUI ) :
 
 	def selectedItem( self ) :
 		selected = self.fileList.selection( )
-		if ( selected is None ) or ( len( selected ) < 1 ) :
+		if ( selected is None ) or ( not len( selected ) ) :
 			self.exception( "file_not_found" )
 
 		current = self.fileList.item( selected )
-		if ( current is None ) or ( "values" not in current ) or ( current[ "values" ] is None ) or ( len( current[ "values" ] ) < 1 ) :
+		try :
+			return current[ "values" ][ 0 ]
+		except :
 			self.exception( "file_not_found" )
-
-		return current[ "values" ][ 0 ]
 
 	def variableValue( self , variable ) :
 		value = variable.get( )
-		if len( value ) < 1 :
+		if not len( value ) :
 			self.exception( "file_not_found" )
 
 		return value
@@ -209,7 +212,6 @@ class FileList( GUI ) :
 
 	"""
 
-
 	def purge( self ) :
 		subName = self.subName( )
 		filename = self.fileRemote( )
@@ -239,7 +241,7 @@ class FileList( GUI ) :
 			self.fileList.delete( item )
 
 		for file in self.creator.creator.fs_item.action( "all" , None , None , "fetchall" ) :
-			values = [ file[ "name" ] ]
+			values = [ file[ key ] for key in ( "id" , "name" ) ]
 			self.fileList.insert( "" , tk.END , values = values , tags = file[ "id" ] )
 
 		return self

@@ -49,6 +49,20 @@ class Controller( DriverClass ) :
 
 		return False
 
+	def __driver( self , account_id , ** kwargs ) :
+		item = self.creator.acc_item[ account_id ]
+
+		if item is None :
+			return None
+
+		self.event( "connection" , onAction = lambda fn : fn( current , total , item ) , ** kwargs )
+		connection = self.prepare( item )
+
+		if connection is None :
+			self.exception( "error" )
+
+		return connection
+
 	def driver( self , account_id = None , ** kwargs ) :
 		if account_id not in self.connection :
 			suggestions = { id: True for id in self.creator.acc_item.keys( ) }
@@ -63,14 +77,7 @@ class Controller( DriverClass ) :
 				account_id = random.choice( list( keys ) )
 
 				try :
-					item = self.creator.acc_item[ account_id ]
-					self.event( "connection" , onAction = lambda fn : fn( current , total , item ) , ** kwargs )
-					connection = self.prepare( item )
-
-					if connection is None :
-						self.exception( "error" )
-					self.connection[ account_id ] = connection
-
+					self.connection[ account_id ] = self.__driver( account_id )
 					break
 				except Exception as exception :
 					del suggestions[ account_id ]
@@ -81,7 +88,7 @@ class Controller( DriverClass ) :
 		return ( account_id , self.connection[ account_id ] )
 
 	def reader( self , fh ) :
-		buffSize = self.config[ 'buffSize' ]
+		buffSize = self.config[ "buffSize" ]
 
 		def _( ) :
 			while True :
@@ -99,13 +106,13 @@ class Controller( DriverClass ) :
 		reader = self.reader( fh )
 		for message in reader :
 			msglen = len( message )
-			password , result = self.encrypt( message = message )
+			password , result = self.encrypt( message )
 
 			yield ( msglen , password , result )
 
 	def write( self , fh , password , message ) :
 		try :
-			decrypted = self.decrypt( password = password , message = message )
+			decrypted = self.decrypt( message , password )
 			fh.write( decrypted )
 		except Exception as exception :	
 			self.exception( exception )
@@ -147,7 +154,7 @@ class Controller( DriverClass ) :
 		return result
 
 	def sync( self , path , ** kwargs ) :
-		self.event( 'before' , onAction = lambda fn : fn( file_id ) , ** kwargs )
+		self.event( "before" , onAction = lambda fn : fn( file_id ) , ** kwargs )
 
 		filenamelist = dict( )
 
@@ -266,11 +273,11 @@ class Controller( DriverClass ) :
 		processed = 0
 
 		try :
-			file_size = os.stat( filename ).st_size
+			filesize = os.stat( filename ).st_size
 			fs_item_id = self.creator.fs_item.append( { "name": filename } )
 
 			md5 = hashlib.md5( )
-			fh = io.open( filename , 'rb' )
+			fh = io.open( filename , "rb" )
 
 			for msglen , password , message in self.read( fh ) :
 				account_id , driver = self.driver( )
@@ -283,7 +290,7 @@ class Controller( DriverClass ) :
 					"password": password
 				} )
 				processed += msglen
-				onProgress = lambda fn : fn( processed , file_size )
+				onProgress = lambda fn : fn( processed , filesize )
 				self.event( "progress" , title = self.config[ "gui" ][ "downloading" ] , onAction = onProgress , ** kwargs )
 			fh.close( )
 
@@ -291,7 +298,7 @@ class Controller( DriverClass ) :
 
 			self.creator.fs_item.action( "update" , {
 				"name": filename ,
-				"size": file_size ,
+				"size": str( filesize ) ,
 				"checksum": checksum
 			} , fs_item_id )
 
@@ -426,3 +433,32 @@ class Controller( DriverClass ) :
 		self.event( "after" , onAction = lambda fn : fn( file_id , file_local ) , ** kwargs )
 
 		return self
+
+	def test( self , * args , ** kwargs ) :
+		self.creator.acc_item.action( "all" , None , None , "fetchone" )
+
+		return self
+
+	def recrypt( self , path , password , * args , ** kwargs ) :
+		if len( password ) not in self.config[ "passwordLen" ] :
+			self.creator.ui.message(
+				title = self.config[ "gui" ][ "error" ] ,
+				message = self.config[ "error" ][ "password_len" ]
+			)
+
+			return False
+
+		sqls = gzip.open( self.config[ "db" ][ "recrypt" ] , mode = "rb" ).read( ).decode( ).split( ";" )
+
+		for sql in sqls :
+			if not sql :
+				continue
+
+			argc = sql.count( "?" )
+			argv = [ password for i in range( argc ) ]
+			self.creator.conn.execute( sql , * argv )
+
+		self.creator.conn.commit( )
+		self.creator.password.change_password( self.creator.password.password , password , password )
+
+		return True
