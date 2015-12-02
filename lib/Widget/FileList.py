@@ -1,9 +1,5 @@
-from lib.GUI import GUI, ttk
+from lib.GUI import GUI, ttk , tk , sys
 from lib.Widget.ChangePasswordDialog import ChangePasswordDialog
-import tkinter.filedialog
-from tkinter.messagebox import *
-import tkinter as tk
-import sys
 
 class FileList( GUI ) :
 	def prepare( self ) :
@@ -22,7 +18,7 @@ class FileList( GUI ) :
 		storeButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "upload" ] , command = self.store )
 		fileButton = ttk.Button( fileBox , text = self.config[ "gui" ][ "select" ] , command = self.onChooseFile )
 
-		# chpassButton.pack( side = tk.RIGHT )
+		# chpassButton.pack( side = ttk.RIGHT )
 		purgeButton.pack( side = tk.RIGHT )
 		storeButton.pack( side = tk.RIGHT )
 		fileButton.pack( side = tk.RIGHT )
@@ -194,28 +190,9 @@ class FileList( GUI ) :
 
 		return result
 
-
-	"""
-	def backup( self ) :
-		subName = self.subName( )
-		result = self.action( subName )
-
-		return result
-
-	def unbackup( self ) :
-		subName = self.subName( )
-		filename = self.fileRemote( )
-
-		result = self.action( subName , filename )
-
-		return result
-
-	"""
-
 	def purge( self ) :
 		subName = self.subName( )
 		filename = self.fileRemote( )
-
 		result = self.action( subName , filename )
 
 		return result
@@ -230,7 +207,6 @@ class FileList( GUI ) :
 	def fetch( self ) :
 		subName = self.subName( )
 		filename = self.fileRemote( )
-
 		fileLocal = self.fileLocal( )
 		result = self.action( subName , filename , fileLocal )
 

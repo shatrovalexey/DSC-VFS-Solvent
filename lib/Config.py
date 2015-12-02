@@ -7,8 +7,6 @@ class Config( dict , Interface ) :
 		self.charset = charset
 		self.config = None
 
-		return None
-
 	def __delitem__( self , key ) :
 		return self.purge( key )
 
@@ -36,29 +34,19 @@ class Config( dict , Interface ) :
 
 	def fetch( self ) :
 		try :
-			fh = gzip.open( self.fileName , mode = "rt" )
-			self.config = json.load( fh )
-			fh.close( )
+			with gzip.open( self.fileName , mode = "rt" ) as fh :
+				self.config = json.load( fh )
+				fh.close( )
 		except Exception as exception :
 			self.config = { }
 			self.store( )
 
 		return self.config
 
-	def find( self , path ) :
-		result = [ ]
-
-		for key in self.config :
-			if key.find( path ) :
-				continue
-			result.append( key )
-
-		return result
-
 	def store( self ) :
-		fh = gzip.open( self.fileName , mode = "wt" , encoding = self.charset )
-		json.dump( self.config , fh )
-		fh.close( )
+		with gzip.open( self.fileName , mode = "wt" , encoding = self.charset ) as fh :
+			json.dump( self.config , fh )
+			fh.close( )
 
 		return True
 
@@ -69,10 +57,9 @@ class Config( dict , Interface ) :
 		return None
 
 	def get( self , key ) :
-		if key in self.config :
-			return self.config[ key ]
-
-		return None
+		if key not in self.config :
+			return None
+		return self.config[ key ]
 
 	def set( self , value , key = None , store = False ) :
 		if key is None :
@@ -96,16 +83,7 @@ class Config( dict , Interface ) :
 		return False
 
 	def path( self , path ) :
-		result = os.path.realpath( path )
-		result = os.path.dirname( result )
+		path = os.path.realpath( path )
+		path = os.path.dirname( path )
 
-		return result
-
-	def list2dict( self , inputList , startKey = 0 ) :
-		result = dict( )
-		i = startKey
-		while i < len( inputList ) :
-			result[ inputList[ i ] ] = inputList[ i + 1 ]
-			i += 2
-
-		return result
+		return path

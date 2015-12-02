@@ -1,4 +1,4 @@
-from lib.Interface import Interface
+from lib.Interface import Interface , sys
 import tkinter as tk
 from tkinter import ttk
 
@@ -8,12 +8,13 @@ class GUI( Interface , ttk.Frame ) :
 		self.creator = creator
 		self.visible = visible
 		self.master = None
+		self.topFrame = None
 		if self.visible :
 			if master is None :
 				master = tk.Tk( )
 
 			self.master = master
-			ttk.Frame.__init__( self , self.master )
+			self.topFrame = ttk.Frame.__init__( self , self.master )
 
 	def prepare( self ) :
 		if self.visible :
@@ -29,8 +30,10 @@ class GUI( Interface , ttk.Frame ) :
 				self.master.wm_iconwindow( self.config[ "icon" ] )
 			except :
 				pass
-
-			self.pack( side = tk.BOTTOM , fill = tk.BOTH , expand = tk.YES )
+			try :
+				self.pack( side = tk.BOTTOM , fill = tk.BOTH , expand = tk.YES )
+			except :
+				pass
 
 		return self
 

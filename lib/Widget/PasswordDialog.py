@@ -1,29 +1,32 @@
 from lib.GUI import GUI
 import tkinter as tk
 
-class PasswordDialog( GUI ) :
+class PasswordDialog( GUI , tk.Toplevel ) :
+	def __init__( self , * args , ** kwargs ) :
+		GUI.__init__( self , * args , ** kwargs )
+		tk.Toplevel.__init__( self , self.master )
+
+		self.title( self.config[ "gui" ][ "authorization" ] )
+
 	def prepare( self ) :
 		GUI.prepare( self )
 
-		self.top = tk.Toplevel( self.master )
-
-		label = tk.Label( self.top , text = self.config[ "gui" ][ "enter_password" ] )
-		label.pack( )
-
 		self.password = tk.StringVar( )
 
-		entry = tk.Entry( self.top , show = '*' , textvariable = self.password )
+		label = tk.Label( self , text = self.config[ "gui" ][ "enter_password" ] )
+		entry = tk.Entry( self , show = '*' , textvariable = self.password )
 		entry.bind( "<Return>" , self.execute )
-		entry.pack( )
+		entry.bind( "<Escape>" , self.finish )
+		submit = tk.Button( self , text = self.config[ "gui" ][ "ok" ] , command = self.execute )
 
-		submit = tk.Button( self.top , text = self.config[ "gui" ][ "set" ] , command = self.execute )
-		submit.pack( )
+		label.pack( side = tk.LEFT )
+		entry.pack( side = tk.LEFT )
+		submit.pack( side = tk.LEFT )
 
 		entry.focus( )
 
-		self.top.transient( self.master )
-		self.top.grab_set( )
-		# self.top.pack( )
+		self.transient( self.master )
+		self.grab_set( )
 		self.creator.set( None )
 
 		return self
@@ -31,11 +34,16 @@ class PasswordDialog( GUI ) :
 	def execute( self , evt = None ) :
 		password = self.password.get( )
 
-		if not self.creator.check( password ) :
-			return False
+		if self.creator.check( password ) :
+			self.creator.set( password )
+		else :
+			tk.messagebox.showinfo( self.config[ "gui" ][ "error" ] , self.config[ "error" ][ "invalid_password" ] )
 
-		self.creator.set( password )
-		# self.top.pack_forget( )
-		self.top.destroy( )
+		self.finish( )
 
-		return True
+		return self
+
+	def finish( self , evt = None ) :
+		self.destroy( )
+
+		return self

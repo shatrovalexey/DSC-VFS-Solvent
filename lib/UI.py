@@ -1,13 +1,13 @@
 from lib.GUI import GUI
 from lib.Widget.FileList import FileList
 from lib.Widget.AccountList import AccountList
-from lib.Widget.WindowsBalloonTip import WindowsBalloonTip
+from lib.Widget.BalloonTip import BalloonTip
 
 class UI( GUI ) :
 	def prepare( self ) :
 		GUI.prepare( self )
 
-		self.messenger = WindowsBalloonTip( self.master , self.config , self , visible = False )
+		self.messenger = BalloonTip( self.master , self.config , self , visible = False )
 		self.messenger.prepare( )
 
 		self.control = [ ]

@@ -45,6 +45,12 @@ class Interface :
 
 		return th
 
+	def timed( self , target , time = 10 , * args , ** kwargs ) :
+		result = threading.Timer( time , target , args = args )
+		result.start( )
+
+		return result
+
 	def subName( self ) :
 		return sys._getframe( 1 ).f_code.co_name
 

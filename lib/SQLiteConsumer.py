@@ -1,17 +1,18 @@
 from lib.SQLite import SQLite
 from lib.Config import Config
+import collections
 
 class SQLiteConsumer( Config ) :
 	def __init__( self , entity , creator ) :
 		self.creator = creator
-		self.queryes = self.creator[ entity ]
+		self.queryes = self.creator[ "handler" ][ entity ]
 
 	def prepare( self ) :
 		self.dbh = self.creator.dbh
 
 		return self
 
-	def action( self , name , value = None , key = None , fetch = None ) :
+	def action( self , name , value = None , key = None , fetch = None , toend = False ) :
 		if name not in self.queryes :
 			return None
 
@@ -39,6 +40,11 @@ class SQLiteConsumer( Config ) :
 		else :
 			sub = getattr( self.creator , fetch )
 			result = sub( sql , * args )
+
+		if ( not toend )  or ( result is None ) or ( type( result ) == str ) :
+			return result
+
+		result = [ item for item in result ]
 
 		return result
 

@@ -30,7 +30,7 @@ class Application( Interface ) :
 	def prepareSQLite3( self ) :
 		self.conn = self.getDBA( self.config[ "db" ][ "path" ] , self.config[ "db" ][ "query" ] )
 
-		for entity in self.conn.config :
+		for entity in self.conn.config[ "handler" ] :
 			consumer = SQLiteConsumer( entity = entity , creator = self.conn )
 			setattr( self , entity , consumer )
 
@@ -66,7 +66,10 @@ class Application( Interface ) :
 
 		self.password = Password( self.ui )
 		self.password.prepare( )
-		self.password.login( )
+
+		result = self.password.login( )
+		if not result :
+			self.exception( "invalid_password" )
 
 		self.prepareSQLite3( )
 		self.ui.prepare( )
@@ -81,10 +84,12 @@ class Application( Interface ) :
 
 	def action( self , action , * argv , ** kwargs ) :
 		error = self.config[ "error" ]
-		onError = lambda exception : self.ui.message(
-			title	= str( exception ) ,
-			message	= error[ "%s_comment" % action ].format( * argv ) ,
-		)
+		def onError( exception ) :
+			self.ui.message(
+				title	= str( exception ) ,
+				message	= error[ "%s_comment" % action ].format( * argv ) ,
+			)
+			raise exception
 		try :
 			target = lambda : self.controller.action( action , onError , argv , kwargs )
 			finish = lambda : self.ui.update( ) and self.ui.message(

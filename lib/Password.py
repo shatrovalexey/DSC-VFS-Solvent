@@ -3,8 +3,7 @@ from lib.DriverClass import DriverClass
 from lib.Widget.PasswordDialog import PasswordDialog
 from Crypto.Cipher import AES
 from Crypto import Random
-import getpass
-import hashlib
+import getpass , hashlib
 
 class Password( Interface ) :
 	def __init__( self , creator ) :
@@ -55,50 +54,37 @@ class Password( Interface ) :
 		return False
 
 	def login( self ) :
-		# self.set( "f2ox9ermf2ox9erm" )
-		# return True
+		"""
+		self.set( "f2ox9ermf2ox9erm" )
+		return True
+		"""
 
-		while True :
-			password = self.get( )
+		password = self.get( )
 
-			if self.auth( password ) :
-				self.set( password )
+		if self.auth( password ) :
+			self.set( password )
 
-				return True
+			return True
 		return False
 
 	def get( self , prompt = None ) :
 		if prompt is None :
 			prompt = self.config[ "gui" ][ "enter_password" ]
 
-		"""
-		self.password = None
-
-		if not self.was :
-			self.was = True
-			result = "f2ox9ermf2ox9erm"
+		if self.visible :
+			self.passwordDialog = PasswordDialog(
+				self.creator.master ,
+				config = self.config ,
+				creator = self ,
+				visible = self.visible
+			)
+			self.passwordDialog.prepare( )
+			self.creator.master.wait_window( self.passwordDialog )
+			del self.passwordDialog
 		else :
-			result = None
-		"""
+			self.password = getpass.getpass( prompt )
 
-		result = None
-
-		while ( result is None ) or ( not len( result ) ) :
-			if self.visible :
-				self.passwordDialog = PasswordDialog( self.creator.master , config = self.config , creator = self , visible = False )
-				self.passwordDialog.prepare( )
-
-				try :
-					self.creator.master.wait_window( self.passwordDialog.top )
-				except :
-					exit( 0 )
-
-				del self.passwordDialog
-				result = self.password
-			else :
-				result = getpass.getpass( prompt )
-
-		return result
+		return self.password
 
 	def change_password( self , password1 , password2 , password3 ) :
 		if not self.equals( password2 , password3 ) :
@@ -110,17 +96,13 @@ class Password( Interface ) :
 		self.set( password2 )
 		self.config[ "password" ] = self.hash( password2 )
 		self.config[ "IV" ] = self.generate( )[ 0 : ( AES.block_size - 1 ) ]
-		self.config.store( )
-		self.config.fetch( )
+		self.config.update( )
 
 		return password2
 
 	def change( self ) :
-		password1 = self.get( self.config[ "gui" ][ "enter_password_old" ] )
-		password2 = self.get( self.config[ "gui" ][ "enter_password_new" ] )
-		password3 = self.get( self.config[ "gui" ][ "enter_password_new2" ] )
-
-		result = self.change_password( password1 , password2 , password3 )
+		args = [ self.config[ "gui" ][ "enter_password_" + key ] for key in ( "old" , "new" , "new2" ) ]
+		result = self.change_password( * args )
 
 		return result
 
@@ -136,6 +118,9 @@ class Password( Interface ) :
 		return False
 
 	def check( self , password ) :
+		if password is None :
+			return False
+
 		md5check1 = self.config[ "password" ]
 		md5check2 = self.hash( password )
 

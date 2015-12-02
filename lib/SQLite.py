@@ -42,73 +42,51 @@ class SQLite( Config ) :
 
 		return self
 
-	def executemany( self , sql , * args ) :
-		result = self.dbh.executemany( sql , args )
-
-		return result
-
 	def executescript( self , script , * args ) :
-		result = self.dbh.executescript( script )
-
-		return result
+		return self.dbh.executescript( script )
 
 	def execute( self , sql , * args ) :
-		result = self.dbh.execute( sql , args )
+		return self.dbh.execute( sql , args )
 
-		return result
-
-	def fetchcol( self , sql , * args ) :
-		self.execute( sql , * args )
-		rows = self.dbh.fetchall( )
-
-		if rows is None :
-			return None
-
+	def fetchcol( self , sql , * args , ** kwargs ) :
+		rows = self.execute( sql , * args )
 		result = [ ]
+		colId = 0
+
+		if "col" in kwargs :
+			colId = kwargs[ "col" ]
 
 		for row in rows :
-			col = row[ 0 ]
+			if "limit" in kwargs :
+				if kwargs[ "limit" ] <= 0 :
+					break
+				kwargs[ "limit" ] -= 1
+
+			col = row[ colId ]
 			result.append( col )
 
 		return result
 
 	def fetchall( self , sql , * args ) :
-		self.execute( sql , * args )
-		while True :
-			row = self.dbh.fetchone( )
-			if row is None :
-				break
-
-			result = self.row( row )
-
-			yield result
+		for row in self.execute( sql , * args ) :
+			yield self.row( row )
+		else :
+			return None
 
 	def fetchrow( self , sql , * args ) :
-		rows = self.fetchall( sql , * args )
-
-		if rows is None :
+		for row in self.fetchall( sql , * args ) :
+			return row
+		else :
 			return None
-
-		for result in rows :
-			return result
-
-		return None
 
 	def fetchone( self , sql , * args ) :
-		self.execute( sql , * args )
-		row = self.dbh.fetchone( )
-
-		if row is None :
+		for col in self.fetchcol( sql , limit = 1 , * args ) :
+			return col
+		else :
 			return None
 
-		result = row[ 0 ]
-
-		return result
-
 	def commit( self ) :
-		result = self.conn.commit( )
-
-		return result
+		return self.conn.commit( )
 
 	def finish( self ) :
 		try :
