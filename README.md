@@ -14,6 +14,8 @@ GNU GENERAL PUBLIC LICENSE
 ## Системные требования
 1. Python version >= 3.4x : https://www.python.org/downloads/
 2. pycrypto: https://pypi.python.org/pypi/pycrypto
+3. qrcode: https://pypi.python.org/pypi/qrcode
+4. pil: http://www.pythonware.com/products/pil/
 
 Больше не нужен:
 3. win32con: http://sourceforge.net/projects/pywin32/files/pywin32/Build%20219/
